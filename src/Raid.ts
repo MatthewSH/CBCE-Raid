@@ -95,7 +95,7 @@ export class Raid {
     }
 
     private join(userId: string, username: string): void {
-        if (!this.sendPub("hasCoins", userId, this.buyInAmount)) {
+        if (!this.sendPub("hasBalance", userId, this.buyInAmount)) {
             this.api.say(`Sorry, ${username}, but you must have at least ${this.buyInAmount} coins to join the raid.`);
             return;
         }
@@ -119,7 +119,7 @@ export class Raid {
             this.api.say(`${username} has joined the raid!`);
             this.players.push(userId);
             this.playersName.push(username);
-            this.sendPub("decrement", userId, this.buyInAmount);
+            this.sendPub("decrementBalance", userId, this.buyInAmount);
             return;
         } else {
             this.api.say(`${username}, you're already a part of this raid.`);
@@ -176,10 +176,10 @@ export class Raid {
                 let lootSplit = Math.floor(loot / this.players.length);
 
                 this.players.forEach(player => {
-                    this.sendPub("increment", player, lootSplit);
+                    this.sendPub("incrementBalance", player, lootSplit);
                 });
 
-                this.sendPub("increment", this.players[0], remainder);
+                this.sendPub("incrementBalance", this.players[0], remainder);
 
                 this.api.say(`The raid on "${this.currentDungeonName}" was a success! Everyone got ${lootSplit} coins and ${this.playersName[0]} got and extra ${remainder} coin(s) as a finders fee.`);
             } else {
@@ -211,7 +211,7 @@ export class Raid {
     }
 
     private sendPub(topic: string, userId: string, amount: number, data?: object) {
-        return this.pubsub.publish(`coinbot.${topic}`, {
+        return this.pubsub.publish(`economy.${topic}`, {
             userId: userId,
             amount: amount
         });
