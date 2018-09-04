@@ -194,7 +194,7 @@ export class Raid {
 
             this.log.info(`"${this.currentDungeonName}" - ${iterations} rounds/iterations ran. ${wins} wins, ${loses} loses.`);
 
-            if (wins > loses) {
+            if (wins >= loses) {
                 let remainder = loot % this.players.length;
                 loot = loot - remainder;
 
