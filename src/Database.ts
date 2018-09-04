@@ -11,6 +11,7 @@ export class Database {
             config: {
                 defaultBuyIn: 100,
                 minimumBuyIn: 100,
+                announceAfterCooldown: true,
                 randomDungeonName: true,
                 timers: {
                     joining: 45,

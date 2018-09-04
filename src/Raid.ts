@@ -203,6 +203,10 @@ export class Raid {
             this.started = false;
             this.joining = false;
             this.inCooldown = false;
+
+            if (this.db.config().announceAfterCooldown) {
+                this.api.say("Our crew is all rested up. Let's get back to work. You can now start a new raid.");
+            }
         });
     }
     
