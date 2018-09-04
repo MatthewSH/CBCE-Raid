@@ -7,7 +7,7 @@ export class Database {
     public constructor(private log: any) {
         this.db = lowdb(new FileSync("raid.json"));
 
-        this.db.defaults({
+        this.db.defaultsDeep({
             config: {
                 defaultBuyIn: 100,
                 minimumBuyIn: 100,
