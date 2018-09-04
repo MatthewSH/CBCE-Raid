@@ -24,6 +24,7 @@
     "typescript": "^2.9.2"
   },
   "dependencies": {
+    "bluebird": "^3.5.2",
     "lowdb": "^1.0.0",
     "timer-stopwatch": "^0.2.0"
   }
