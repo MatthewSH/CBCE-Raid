@@ -1,5 +1,6 @@
 import { Database } from "./Database";
 import { Dungeon } from "./Dungeon";
+import { Crypto } from "./Crypto";
 
 let stopwatch = require("timer-stopwatch");
 
@@ -151,15 +152,27 @@ export class Raid {
         }
 
         this.started = true;
+
+        let totalBuyIn = this.players.length * this.buyInAmount;
+        let minLoot = totalBuyIn * 1.5;
+        let maxLoot = (this.players.length > 2 ) ? (totalBuyIn * this.players.length) : (totalBuyIn * 2);
+        let loot = Crypto.randomNumber(minLoot, maxLoot);
+
         let successChance = Math.floor(5 + (this.players.length * 5));
+
+        let iterations = 1;
+        let wins = 0;
+        let loses = 0;
+
+        if ((loot / 2500) > 1) {
+            iterations = Math.ceil(loot / 2500);
+        }
 
         if (this.buyInAmount > 100) {
             let moreChance = Math.floor(this.buyInAmount / 100) < 15 ? Math.floor(this.buyInAmount / 100) : 15;
             successChance = successChance + moreChance;
         }
 
-        let loot = this.getRandomInt(1e3, 1e5);
-        loot = Math.floor(loot + (this.players.length * this.buyInAmount));
 
         this.api.say(`The raid for "${this.currentDungeonName}" has begun. We have a ${successChance}% chance of success. We're looking at a total loot of ${loot} coins.`);
         this.api.say(`Raid Party (${this.players.length}): ${this.playersName.join(", ")}`);
@@ -167,9 +180,21 @@ export class Raid {
         this.timerRaid.start();
 
         this.timerRaid.on("done", () => {
-            let result = this.getRandomInt(0, 100);
+            let result: number;
 
-            if (result <= successChance) {
+            for (let i = 0; i < iterations; i++) {
+                result = Crypto.randomNumber(1, 100);
+
+                if (result <= successChance) {
+                    wins++;
+                } else {
+                    loses++;
+                }
+            }
+
+            this.log.info(`"${this.currentDungeonName}" - ${iterations} rounds/iterations ran. ${wins} wins, ${loses} loses.`);
+
+            if (wins > loses) {
                 let remainder = loot % this.players.length;
                 loot = loot - remainder;
 
@@ -183,7 +208,17 @@ export class Raid {
 
                 this.api.say(`The raid on "${this.currentDungeonName}" was a success! Everyone got ${lootSplit} coins and ${this.playersName[0]} got and extra ${remainder} coin(s) as a finders fee.`);
             } else {
-                this.api.say(`Well, we attempted the raid on "${this.currentDungeonName}," but we lost. Each ${this.buyInAmount} coins buyin was spent on medical bills.`);
+                let charityCase = Math.floor((((loot) / iterations) * wins) - this.buyInAmount);
+
+                if (charityCase > 0) {
+                    this.players.forEach(player => {
+                        this.sendPub("incrementBalance", player, charityCase);
+                    });
+    
+                    this.api.say(`Well, we attempted the raid on "${this.currentDungeonName}," but we lost. Each ${this.buyInAmount} coins buyin was spent on medical bills, but each person did get ${charityCase} back!`);
+                } else {
+                    this.api.say(`Well, we attempted the raid on "${this.currentDungeonName}," but we lost. Each ${this.buyInAmount} coins buyin was spent on medical bills.`);
+                }
             }
 
 
