@@ -158,7 +158,7 @@ export class Raid {
         let maxLoot = (this.players.length > 2 ) ? (totalBuyIn * this.players.length) : (totalBuyIn * 2);
         let loot = Crypto.randomNumber(minLoot, maxLoot);
 
-        let successChance = Math.floor(5 + (this.players.length * 5));
+        let successChance = (this.players.length > 4) ? Math.floor(5 + (this.players.length * 5)) : Math.floor(7 + (this.players.length * 6));
 
         let iterations = 1;
         let wins = 0;
