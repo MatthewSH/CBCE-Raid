@@ -20,6 +20,7 @@ export class Raid {
     private timerCooldown = new stopwatch(this.cooldownTime);
     private timerJoining = new stopwatch(this.joiningTime);
     private timerRaid = new stopwatch(this.raidingTime);
+    private currencyTemplate: string;
 
     public constructor(private api: any, private helper: any, private log: any, private pubsub: any, private db: Database) {
         this.cooldownTime = this.db.config().timers.cooldown * 1000;
@@ -28,6 +29,7 @@ export class Raid {
         this.defaultBuyInAmount = Number(this.db.config().defaultBuyIn);
         this.minBuyInAmount = Number(this.db.config().minimumBuyIn);
         this.buyInAmount = this.defaultBuyInAmount;
+        this.currencyTemplate = this.sendPub("currency.format", null, -1);
     }
 
     public execute(command: any, parameters: Array<string>, message: any): void {
@@ -51,7 +53,7 @@ export class Raid {
                     this.buyInAmount = Number(parameters[0]);
 
                     if (this.buyInAmount < this.minBuyInAmount) {
-                        this.api.say(`The raid buyin must be ${this.minBuyInAmount} or more coins!`);
+                        this.api.say(`The raid buyin must be ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.minBuyInAmount))} or more!`);
                         return;
                     }
                 } else {
@@ -90,14 +92,14 @@ export class Raid {
                 return;
             }
 
-            this.api.say(`"${this.currentDungeonName}." Cost: ${this.buyInAmount}. Member Count: ${this.players.length}. `);
+            this.api.say(`"${this.currentDungeonName}." Cost: ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))}. Member Count: ${this.players.length}. `);
             return;
         }
     }
 
     private join(userId: string, username: string): void {
         if (!this.sendPub("hasBalance", userId, this.buyInAmount)) {
-            this.api.say(`Sorry, ${username}, but you must have at least ${this.buyInAmount} coins to join the raid.`);
+            this.api.say(`Sorry, ${username}, but you must have at least ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))} coins to join the raid.`);
             return;
         }
 
@@ -174,7 +176,7 @@ export class Raid {
         }
 
 
-        this.api.say(`The raid for "${this.currentDungeonName}" has begun. We have a ${successChance}% chance of success. We're looking at a total loot of ${loot} coins.`);
+        this.api.say(`The raid for "${this.currentDungeonName}" has begun. We have a ${successChance}% chance of success. We're looking at a total loot of ${this.currencyTemplate.replace("-1", this.helper.withCommas(loot))}.`);
         this.api.say(`Raid Party (${this.players.length}): ${this.playersName.join(", ")}`);
 
         this.timerRaid.start();
@@ -206,7 +208,7 @@ export class Raid {
 
                 this.sendPub("incrementBalance", this.players[0], remainder);
 
-                this.api.say(`The raid on "${this.currentDungeonName}" was a success! Everyone got ${lootSplit} coins and ${this.playersName[0]} got and extra ${remainder} coin(s) as a finders fee.`);
+                this.api.say(`The raid on "${this.currentDungeonName}" was a success! Everyone got ${lootSplit} coins and ${this.playersName[0]} got and extra ${this.currencyTemplate.replace("-1", this.helper.withCommas(remainder))} as a finders fee.`);
             } else {
                 let charityCase = Math.floor((((loot) / iterations) * wins) - this.buyInAmount);
 
@@ -215,9 +217,9 @@ export class Raid {
                         this.sendPub("incrementBalance", player, charityCase);
                     });
     
-                    this.api.say(`Well, we attempted the raid on "${this.currentDungeonName}," but we lost. Each ${this.buyInAmount} coins buyin was spent on medical bills, but each person did get ${charityCase} back!`);
+                    this.api.say(`Well, we attempted the raid on "${this.currentDungeonName}," but we lost. Each ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))} buyin was spent on medical bills, but each person did get ${this.currencyTemplate.replace("-1", this.helper.withCommas(charityCase))} back!`);
                 } else {
-                    this.api.say(`Well, we attempted the raid on "${this.currentDungeonName}," but we lost. Each ${this.buyInAmount} coins buyin was spent on medical bills.`);
+                    this.api.say(`Well, we attempted the raid on "${this.currentDungeonName}," but we lost. Each ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))} buyin was spent on medical bills.`);
                 }
             }
 
