@@ -1,21 +1,16 @@
-// ChatBotCE 
-import { API } from "chatbotce/typings/lib/API";
-import { Helper } from "chatbotce/typings/lib/Helpers";
-import { PubSub } from "chatbotce/typings/lib/PubSub";
-
 import { Raid } from "./Raid";
 import { Database } from "./Database";
 
 export var commands: Array<string> = ["raid"];
 
-let api: API;
-let helper: Helper;
+let api: any;
+let helper: any;
 let log;
-let pubsub: PubSub;
+let pubsub: any;
 let raid: Raid;
 let db: Database;
 
-export function constructor(api: API, helper: Helper, log: any, pubsub: PubSub) {
+export function constructor(api: any, helper: any, log: any, pubsub: any) {
     this.api = api;
     this.helper = helper;
     this.log = log;
