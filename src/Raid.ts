@@ -60,6 +60,11 @@ export class Raid {
                     this.buyInAmount = this.defaultBuyInAmount;
                 }
 
+                if (!this.sendPub("hasBalance", message.username, this.buyInAmount)) {
+                    this.api.say(`Sorry, ${message.username}, but you must have at least ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))} coins to start the raid.`);
+                    return;
+                }
+
                 this.currentDungeonName = Dungeon.generateName();
                 this.api.say(`Starting raid for "${this.currentDungeonName}". Join with ${process.env.COMMAND_PREFIX}raid join`);
                 this.start();
@@ -98,13 +103,8 @@ export class Raid {
     }
 
     private join(userId: string, username: string): void {
-        if (!this.sendPub("hasBalance", userId, this.buyInAmount)) {
-            this.api.say(`Sorry, ${username}, but you must have at least ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))} coins to join the raid.`);
-            return;
-        }
-
-        if (this.players.length >= 10) {
-            this.api.say(`Sorry ${username} we have a full party (max 10 people).`);
+        if (!this.joining) {
+            this.api.say(`${username}, you must join the raid during the joining phase.`);
             return;
         }
 
@@ -115,6 +115,16 @@ export class Raid {
 
         if (this.started) {
             this.api.say(`${username}, you can not join a raid that is in progress!`);
+            return;
+        }
+
+        if (!this.sendPub("hasBalance", userId, this.buyInAmount)) {
+            this.api.say(`Sorry, ${username}, but you must have at least ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))} coins to join the raid.`);
+            return;
+        }
+
+        if (this.players.length >= 10) {
+            this.api.say(`Sorry ${username} we have a full party (max 10 people).`);
             return;
         }
 
@@ -166,7 +176,7 @@ export class Raid {
         let wins = 0;
         let loses = 0;
 
-        if ((loot / 2500) > 1) {
+        if ((this.buyInAmount / 2500) > 1) {
             iterations = Math.ceil(loot / 2500);
         }
 
@@ -210,7 +220,8 @@ export class Raid {
 
                 this.api.say(`The raid on "${this.currentDungeonName}" was a success! Everyone got ${lootSplit} coins and ${this.playersName[0]} got and extra ${this.currencyTemplate.replace("-1", this.helper.withCommas(remainder))} as a finders fee.`);
             } else {
-                let charityCase = Math.floor((((loot) / iterations) * wins) - this.buyInAmount);
+                let remainder = loot % this.players.length;
+                let charityCase = Math.floor(((remainder / iterations) * wins) - this.buyInAmount);
 
                 if (charityCase > 0) {
                     this.players.forEach(player => {
