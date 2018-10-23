@@ -60,7 +60,7 @@ export class Raid {
                     this.buyInAmount = this.defaultBuyInAmount;
                 }
 
-                if (!this.sendPub("hasBalance", message.username, this.buyInAmount)) {
+                if (!this.sendPub("hasBalance", message.userId, this.buyInAmount)) {
                     this.api.say(`Sorry, ${message.username}, but you must have at least ${this.currencyTemplate.replace("-1", this.helper.withCommas(this.buyInAmount))} coins to start the raid.`);
                     return;
                 }
@@ -167,16 +167,16 @@ export class Raid {
 
         let totalBuyIn = this.players.length * this.buyInAmount;
         let minLoot = totalBuyIn * 1.5;
-        let maxLoot = (this.players.length > 2 ) ? (totalBuyIn * this.players.length) : (totalBuyIn * 2);
+        let maxLoot = (this.players.length > 2 ) ? (totalBuyIn * this.players.length) : (totalBuyIn * 3);
         let loot = Crypto.randomNumber(minLoot, maxLoot);
 
-        let successChance = (this.players.length > 4) ? Math.floor(5 + (this.players.length * 5)) : Math.floor(7 + (this.players.length * 6));
+        let successChance = (this.players.length >= 4) ? Math.floor(5 + (this.players.length * 5)) : Math.floor(9 + (this.players.length * 6));
 
         let iterations = 1;
         let wins = 0;
         let loses = 0;
 
-        if ((this.buyInAmount / 2500) > 1) {
+        if ((this.buyInAmount / 5000) > 1) {
             iterations = Math.ceil(loot / 2500);
         }
 
